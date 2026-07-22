@@ -10,6 +10,8 @@ import com.jimmcgaw.whatsayyou.data.AudioRecordRepository
 import com.jimmcgaw.whatsayyou.data.DefaultAudioRecordRepository
 import com.jimmcgaw.whatsayyou.playback.AudioPlayer
 import com.jimmcgaw.whatsayyou.playback.ExoPlayerAudioPlayer
+import com.jimmcgaw.whatsayyou.transcription.LiveTranscriptionEngine
+import com.jimmcgaw.whatsayyou.transcription.SpeechRecognizerLiveTranscriptionEngine
 import com.jimmcgaw.whatsayyou.transcription.SpeechRecognizerTranscriptionEngine
 import com.jimmcgaw.whatsayyou.transcription.TranscriptionEngine
 import com.jimmcgaw.whatsayyou.work.TranscriptionScheduler
@@ -34,6 +36,10 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
 
     override val transcriptionScheduler: TranscriptionScheduler by lazy {
         WorkManagerTranscriptionScheduler(WorkManager.getInstance(context))
+    }
+
+    override val liveTranscriptionEngine: LiveTranscriptionEngine by lazy {
+        SpeechRecognizerLiveTranscriptionEngine(context)
     }
 
     override val audioPlayerFactory: () -> AudioPlayer = { ExoPlayerAudioPlayer(context) }
