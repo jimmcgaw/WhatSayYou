@@ -2,6 +2,8 @@ package com.jimmcgaw.whatsayyou.di
 
 import android.content.Context
 import androidx.room.Room
+import com.jimmcgaw.whatsayyou.audio.AudioCaptureEngine
+import com.jimmcgaw.whatsayyou.audio.AudioRecordCaptureEngine
 import com.jimmcgaw.whatsayyou.data.AppDatabase
 import com.jimmcgaw.whatsayyou.data.AudioRecordRepository
 import com.jimmcgaw.whatsayyou.data.DefaultAudioRecordRepository
@@ -13,5 +15,9 @@ class DefaultAppContainer(private val context: Context) : AppContainer {
 
     override val audioRecordRepository: AudioRecordRepository by lazy {
         DefaultAudioRecordRepository(database.audioRecordDao())
+    }
+
+    override val audioCaptureEngine: AudioCaptureEngine by lazy {
+        AudioRecordCaptureEngine(context.filesDir)
     }
 }
