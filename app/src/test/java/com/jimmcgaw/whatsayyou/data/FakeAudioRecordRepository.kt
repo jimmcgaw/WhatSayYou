@@ -29,4 +29,10 @@ class FakeAudioRecordRepository(
         records.value = records.value + entity
         return entity.id
     }
+
+    override suspend fun getById(id: Long): AudioRecordEntity? = records.value.find { it.id == id }
+
+    override suspend fun update(record: AudioRecordEntity) {
+        records.value = records.value.map { if (it.id == record.id) record else it }
+    }
 }

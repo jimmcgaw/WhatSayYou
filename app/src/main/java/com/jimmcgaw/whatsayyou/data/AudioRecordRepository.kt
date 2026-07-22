@@ -6,4 +6,8 @@ interface AudioRecordRepository {
     fun observeAllOrderedByLastAccessed(): Flow<List<AudioRecordEntity>>
 
     suspend fun addRecording(audioFilePath: String, recordedAt: Long, durationMs: Long): Long
+
+    suspend fun getById(id: Long): AudioRecordEntity?
+
+    suspend fun update(record: AudioRecordEntity)
 }

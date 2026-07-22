@@ -20,4 +20,8 @@ class DefaultAudioRecordRepository(private val dao: AudioRecordDao) : AudioRecor
                 title = null,
             ),
         )
+
+    override suspend fun getById(id: Long): AudioRecordEntity? = dao.getById(id)
+
+    override suspend fun update(record: AudioRecordEntity) = dao.update(record)
 }

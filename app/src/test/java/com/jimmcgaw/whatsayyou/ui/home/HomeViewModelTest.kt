@@ -3,6 +3,7 @@ package com.jimmcgaw.whatsayyou.ui.home
 import com.jimmcgaw.whatsayyou.audio.FakeAudioCaptureEngine
 import com.jimmcgaw.whatsayyou.data.FakeAudioRecordRepository
 import com.jimmcgaw.whatsayyou.data.TranscriptionStatus
+import com.jimmcgaw.whatsayyou.work.FakeTranscriptionScheduler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -34,7 +35,7 @@ class HomeViewModelTest {
     fun onRecordClick_start_setsRecordingStateAndCallsEngine() {
         val engine = FakeAudioCaptureEngine()
         val repository = FakeAudioRecordRepository()
-        val viewModel = HomeViewModel(engine, repository)
+        val viewModel = HomeViewModel(engine, repository, FakeTranscriptionScheduler())
 
         viewModel.onRecordClick()
 
@@ -43,10 +44,11 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun onRecordClick_startThenStop_insertsPendingRecording() = runTest {
+    fun onRecordClick_startThenStop_insertsPendingRecordingAndEnqueuesTranscription() = runTest {
         val engine = FakeAudioCaptureEngine()
         val repository = FakeAudioRecordRepository()
-        val viewModel = HomeViewModel(engine, repository)
+        val scheduler = FakeTranscriptionScheduler()
+        val viewModel = HomeViewModel(engine, repository, scheduler)
 
         viewModel.onRecordClick() // start
         viewModel.onRecordClick() // stop
@@ -54,6 +56,8 @@ class HomeViewModelTest {
 
         assertFalse(viewModel.uiState.value.isRecording)
         assertEquals(1, repository.insertedRecords.size)
-        assertEquals(TranscriptionStatus.PENDING, repository.insertedRecords.single().transcriptionStatus)
+        val insertedRecord = repository.insertedRecords.single()
+        assertEquals(TranscriptionStatus.PENDING, insertedRecord.transcriptionStatus)
+        assertEquals(listOf(insertedRecord.id), scheduler.enqueuedRecordIds)
     }
 }

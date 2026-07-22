@@ -28,7 +28,12 @@ fun ListScreen(
     } else {
         LazyColumn(modifier = modifier.fillMaxSize()) {
             items(recordings, key = { it.id }) { recording ->
-                ListItem(headlineContent = { Text(recording.displayTitle) })
+                ListItem(
+                    headlineContent = { Text(recording.displayTitle) },
+                    supportingContent = {
+                        Text(recording.transcript ?: recording.transcriptionStatus.name)
+                    },
+                )
                 HorizontalDivider()
             }
         }
