@@ -34,7 +34,7 @@ class ExoPlayerAudioPlayer(context: Context) : AudioPlayer {
     init {
         player.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
-                _playbackState.update { it.copy(isPlaying = isPlaying) }
+                _playbackState.update { it.copy(isPlaying = isPlaying, positionMs = player.currentPosition) }
                 if (isPlaying) startPositionPolling() else positionPollingJob?.cancel()
             }
 

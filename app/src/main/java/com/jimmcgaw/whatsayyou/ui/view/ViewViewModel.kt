@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 private const val EMPTY_TITLE_ERROR = "Title cannot be empty"
+private const val END_OF_PLAYBACK_THRESHOLD_MS = 250L
 
 class ViewViewModel(
     private val recordId: Long,
@@ -71,7 +72,15 @@ class ViewViewModel(
     }
 
     fun onPlayPauseClick() {
-        if (_uiState.value.isPlaying) audioPlayer.pause() else audioPlayer.play()
+        val state = _uiState.value
+        if (state.isPlaying) {
+            audioPlayer.pause()
+            return
+        }
+        if (state.durationMs > 0 && state.durationMs - state.positionMs <= END_OF_PLAYBACK_THRESHOLD_MS) {
+            audioPlayer.seekTo(0)
+        }
+        audioPlayer.play()
     }
 
     fun onSeek(positionMs: Long) {

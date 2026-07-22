@@ -3,8 +3,7 @@ package com.jimmcgaw.whatsayyou.ui.home
 import com.jimmcgaw.whatsayyou.audio.FakeAudioCaptureEngine
 import com.jimmcgaw.whatsayyou.data.FakeAudioRecordRepository
 import com.jimmcgaw.whatsayyou.data.TranscriptionStatus
-import com.jimmcgaw.whatsayyou.transcription.FakeLiveTranscriptionEngine
-import com.jimmcgaw.whatsayyou.transcription.TranscriptionResult
+import com.jimmcgaw.whatsayyou.work.FakeTranscriptionScheduler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -36,7 +35,7 @@ class HomeViewModelTest {
     fun onRecordClick_start_setsRecordingStateAndCallsEngine() {
         val engine = FakeAudioCaptureEngine()
         val repository = FakeAudioRecordRepository()
-        val viewModel = HomeViewModel(engine, repository, FakeLiveTranscriptionEngine())
+        val viewModel = HomeViewModel(engine, repository, FakeTranscriptionScheduler())
 
         viewModel.onRecordClick()
 
@@ -45,35 +44,20 @@ class HomeViewModelTest {
     }
 
     @Test
-    fun onRecordClick_startThenStop_persistsTranscriptFromLiveEngine() = runTest {
+    fun onRecordClick_startThenStop_insertsPendingRecordingAndEnqueuesTranscription() = runTest {
         val engine = FakeAudioCaptureEngine()
         val repository = FakeAudioRecordRepository()
-        val transcriptionEngine = FakeLiveTranscriptionEngine(TranscriptionResult.Success("hello world"))
-        val viewModel = HomeViewModel(engine, repository, transcriptionEngine)
+        val scheduler = FakeTranscriptionScheduler()
+        val viewModel = HomeViewModel(engine, repository, scheduler)
 
         viewModel.onRecordClick() // start
         viewModel.onRecordClick() // stop
         advanceUntilIdle()
 
         assertFalse(viewModel.uiState.value.isRecording)
-        assertTrue(transcriptionEngine.startListeningCalled)
+        assertEquals(1, repository.insertedRecords.size)
         val insertedRecord = repository.insertedRecords.single()
-        assertEquals(TranscriptionStatus.COMPLETED, insertedRecord.transcriptionStatus)
-        assertEquals("hello world", insertedRecord.transcript)
-    }
-
-    @Test
-    fun onRecordClick_startThenStop_noSpeechDetected_marksStatus() = runTest {
-        val engine = FakeAudioCaptureEngine()
-        val repository = FakeAudioRecordRepository()
-        val transcriptionEngine = FakeLiveTranscriptionEngine(TranscriptionResult.NoSpeechDetected)
-        val viewModel = HomeViewModel(engine, repository, transcriptionEngine)
-
-        viewModel.onRecordClick() // start
-        viewModel.onRecordClick() // stop
-        advanceUntilIdle()
-
-        val insertedRecord = repository.insertedRecords.single()
-        assertEquals(TranscriptionStatus.NO_SPEECH_DETECTED, insertedRecord.transcriptionStatus)
+        assertEquals(TranscriptionStatus.PENDING, insertedRecord.transcriptionStatus)
+        assertEquals(listOf(insertedRecord.id), scheduler.enqueuedRecordIds)
     }
 }

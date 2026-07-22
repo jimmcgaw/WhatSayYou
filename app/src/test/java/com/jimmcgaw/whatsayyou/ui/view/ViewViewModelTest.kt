@@ -4,6 +4,7 @@ import com.jimmcgaw.whatsayyou.data.AudioRecordEntity
 import com.jimmcgaw.whatsayyou.data.FakeAudioRecordRepository
 import com.jimmcgaw.whatsayyou.data.TranscriptionStatus
 import com.jimmcgaw.whatsayyou.playback.FakeAudioPlayer
+import com.jimmcgaw.whatsayyou.playback.PlaybackState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -73,6 +74,32 @@ class ViewViewModelTest {
 
         assertNull(viewModel.uiState.value.titleError)
         assertEquals("New title", repository.getById(1)?.title)
+    }
+
+    @Test
+    fun onPlayPauseClick_atEndOfPlayback_restartsFromBeginning() = runTest {
+        val repository = FakeAudioRecordRepository(initialRecords = listOf(record()))
+        val audioPlayer = FakeAudioPlayer()
+        val viewModel = ViewViewModel(1, repository, audioPlayer)
+        audioPlayer.emit(PlaybackState(isPlaying = false, positionMs = 5_000, durationMs = 5_000))
+
+        viewModel.onPlayPauseClick()
+
+        assertEquals(0L, audioPlayer.playbackState.value.positionMs)
+        assertTrue(audioPlayer.playbackState.value.isPlaying)
+    }
+
+    @Test
+    fun onPlayPauseClick_midPlayback_doesNotSeek() = runTest {
+        val repository = FakeAudioRecordRepository(initialRecords = listOf(record()))
+        val audioPlayer = FakeAudioPlayer()
+        val viewModel = ViewViewModel(1, repository, audioPlayer)
+        audioPlayer.emit(PlaybackState(isPlaying = false, positionMs = 2_000, durationMs = 5_000))
+
+        viewModel.onPlayPauseClick()
+
+        assertEquals(2_000L, audioPlayer.playbackState.value.positionMs)
+        assertTrue(audioPlayer.playbackState.value.isPlaying)
     }
 
     @Test
