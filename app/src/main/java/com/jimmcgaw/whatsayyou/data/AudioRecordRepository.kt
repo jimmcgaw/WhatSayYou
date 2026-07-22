@@ -10,4 +10,6 @@ interface AudioRecordRepository {
     suspend fun getById(id: Long): AudioRecordEntity?
 
     suspend fun update(record: AudioRecordEntity)
+
+    suspend fun deleteRecording(id: Long)
 }

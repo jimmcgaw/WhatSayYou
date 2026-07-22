@@ -1,5 +1,6 @@
 package com.jimmcgaw.whatsayyou.data
 
+import java.io.File
 import kotlinx.coroutines.flow.Flow
 
 class DefaultAudioRecordRepository(private val dao: AudioRecordDao) : AudioRecordRepository {
@@ -24,4 +25,10 @@ class DefaultAudioRecordRepository(private val dao: AudioRecordDao) : AudioRecor
     override suspend fun getById(id: Long): AudioRecordEntity? = dao.getById(id)
 
     override suspend fun update(record: AudioRecordEntity) = dao.update(record)
+
+    override suspend fun deleteRecording(id: Long) {
+        val record = dao.getById(id) ?: return
+        dao.deleteById(id)
+        File(record.audioFilePath).delete()
+    }
 }

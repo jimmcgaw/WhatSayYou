@@ -1,5 +1,6 @@
 package com.jimmcgaw.whatsayyou.ui.list
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,6 +18,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 @Composable
 fun ListScreen(
     modifier: Modifier = Modifier,
+    onRecordingClick: (Long) -> Unit,
     viewModel: ListViewModel = viewModel(factory = ListViewModel.Factory),
 ) {
     val recordings by viewModel.uiState.collectAsStateWithLifecycle()
@@ -30,9 +32,7 @@ fun ListScreen(
             items(recordings, key = { it.id }) { recording ->
                 ListItem(
                     headlineContent = { Text(recording.displayTitle) },
-                    supportingContent = {
-                        Text(recording.transcript ?: recording.transcriptionStatus.name)
-                    },
+                    modifier = Modifier.clickable { onRecordingClick(recording.id) },
                 )
                 HorizontalDivider()
             }

@@ -35,4 +35,8 @@ class FakeAudioRecordRepository(
     override suspend fun update(record: AudioRecordEntity) {
         records.value = records.value.map { if (it.id == record.id) record else it }
     }
+
+    override suspend fun deleteRecording(id: Long) {
+        records.value = records.value.filterNot { it.id == id }
+    }
 }
